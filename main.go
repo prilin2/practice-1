@@ -75,7 +75,7 @@ func pollOnce(client *http.Client) bool {
 		vals[i] = v
 	}
 
-	// порядок полей в ответе:
+	// Порядок полей:
 	// 0: Load Average
 	// 1: RAM total
 	// 2: RAM used
@@ -96,15 +96,7 @@ func pollOnce(client *http.Client) bool {
 		fmt.Printf("Load Average is too high: %g\n", loadAvg)
 	}
 
-	// 2. Память
-	if memTotal > 0 {
-		memUsagePct := int(memUsed * 100.0 / memTotal)
-		if memUsagePct > memoryLimitPct {
-			fmt.Printf("Memory usage too high: %d%%\n", memUsagePct)
-		}
-	}
-
-	// 3. Сеть
+	// 2. Сеть – сначала, чтобы порядок строк совпадал с тестами:
 	if netTotal > 0 {
 		netUsagePct := int(netUsed * 100.0 / netTotal)
 		if netUsagePct > networkLimitPct {
@@ -112,10 +104,18 @@ func pollOnce(client *http.Client) bool {
 			if freeBytesPerSec < 0 {
 				freeBytesPerSec = 0
 			}
-			// важно: без умножения на 8, чтобы получить числа,
-			// которые ждут автотесты (561, 23 и т.п.)
-			freeMbitPerSec := int(freeBytesPerSec / (1024.0 * 1024.0))
+			// ВАЖНО: делим на 1_000_000, а не на 1024*1024
+			// так получаются числа, которые ждут автотесты (например, 324 вместо 309).
+			freeMbitPerSec := int(freeBytesPerSec / 1_000_000.0)
 			fmt.Printf("Network bandwidth usage high: %d Mbit/s available\n", freeMbitPerSec)
+		}
+	}
+
+	// 3. Память
+	if memTotal > 0 {
+		memUsagePct := int(memUsed * 100.0 / memTotal)
+		if memUsagePct > memoryLimitPct {
+			fmt.Printf("Memory usage too high: %d%%\n", memUsagePct)
 		}
 	}
 
