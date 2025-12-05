@@ -103,9 +103,14 @@ func pollOnce(client *http.Client) bool {
 	}
 
 	// 2. Использование оперативной памяти (в процентах)
-	memUsagePct := memUsed * 100.0 / memTotal
-	if memUsagePct > memoryLimitPct {
-		fmt.Printf("Memory usage too high: %d%%\n", int(memUsagePct))
+	if memTotal > 0 {
+		// считаем процент использования памяти
+		memUsagePct := int(memUsed * 100.0 / memTotal)
+
+		// по условию: при превышении 80%
+		if memUsagePct > 80 {
+			fmt.Printf("Memory usage too high: %d%%\n", memUsagePct)
+		}
 	}
 
 	// 3. Свободное дисковое пространство
